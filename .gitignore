@@ -3,6 +3,7 @@
 
 # Virtual environment
 venv
+media
 
 Requests/migrations/*
 !Requests/migrations/__init__.py
