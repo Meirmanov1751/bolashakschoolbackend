@@ -1,0 +1,11 @@
+# Pycharm settings
+.idea
+
+# Virtual environment
+venv
+
+Requests/migrations/*
+!Requests/migrations/__init__.py
+
+Filters/migrations/*
+!Filters/migrations/__init__.py
