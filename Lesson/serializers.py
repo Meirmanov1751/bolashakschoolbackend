@@ -38,7 +38,7 @@ class RetrieveLessonSerializer(ModelSerializer):
 class LessonSmallSerializer(ModelSerializer):
     class Meta:
         model = Lesson
-        fields = ('name', 'description', 'image')
+        fields = ('id', 'name', 'description', 'image')
 
 
 class RetrieveSubCategorySerializer(ModelSerializer):
