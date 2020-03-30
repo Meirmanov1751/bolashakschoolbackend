@@ -50,6 +50,8 @@ class UserViewSet(CreateModelMixin, UpdateModelMixin, GenericViewSet):
         username = serializer.data['username']
         password = serializer.data['password']
         user = authenticate(username=username, password=password)
+        if not user:
+            return Response(status=status.HTTP_403_FORBIDDEN, data={"error": "не правильные логин или пароль"})
         token = RefreshToken.for_user(user=user)
         user_serializer = UserReadSerializer(user)
         data = user_serializer.data
