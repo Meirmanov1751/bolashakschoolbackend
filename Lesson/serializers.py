@@ -12,7 +12,7 @@ class SubCategorySerializer(ModelSerializer):
 class LessonMaterialSerializer(ModelSerializer):
     class Meta:
         model = LessonMaterial
-        fields = '__all_'
+        fields = '__all__'
 
 
 class LessonSerializer(ModelSerializer):
