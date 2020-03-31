@@ -16,7 +16,7 @@ headers = {
 def getOtp(videoId):
     video_url = url + "/"+videoId + "/otp"
     response = requests.request("POST", video_url, headers=headers)
-    print(response.json())
+    return response.json()
 
 def upload(filename, title):
     querystring = {"title": title}
