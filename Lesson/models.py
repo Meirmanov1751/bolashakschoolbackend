@@ -2,6 +2,8 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from Lesson.vimoe import upload
+
 
 class Category(models.Model):
     name = models.CharField(max_length=250)
@@ -26,7 +28,7 @@ class Lesson(models.Model):
     name = models.CharField(max_length=500)
     description = models.TextField(blank=True, null=True)
     video = models.FileField(null=True, blank=True)
-    vimeo_url = models.URLField(null=True, blank=True)
+    videoId = models.CharField(max_length=300, null=True, blank=True)
     image = models.ImageField(null=True, blank=True)
     sub_category = models.ForeignKey('Lesson.SubCategory', on_delete=models.CASCADE, related_name='lessons', null=True)
 
@@ -55,3 +57,12 @@ class UserLesson(models.Model):
 
     def __str__(self):
         return "%s" % self.user
+
+
+def uploadVideo(sender, instance, **kwargs):
+    post_save.disconnect(uploadVideo, sender=sender)
+    instance.videoId = upload(instance.video.path, instance.name)
+    instance.save()
+    post_save.connect(uploadVideo, sender=sender)
+
+post_save.connect(uploadVideo, sender= Lesson)

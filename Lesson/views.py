@@ -8,6 +8,7 @@ from Lesson.models import Category, Lesson, LessonMaterial, SubCategory, UserLes
 from Lesson.permissions import IsActiveAndIsAuthenticated
 from Lesson.serializers import CategorySerializer, SubCategorySerializer, LessonSerializer, RetrieveCategorySerializer, \
     RetrieveSubCategorySerializer, RetrieveLessonSerializer, HomeworkSerializer
+from Lesson.vimoe import getOtp
 
 
 class CategoryViewSet(ReadOnlyModelViewSet):
@@ -51,6 +52,9 @@ class LessonViewSet(ReadOnlyModelViewSet):
             homework = is_in_cart.homework.all()
             homework_serializer = HomeworkSerializer(homework, many=True).data
             data = serializer.data
+            otp = getOtp(data["videoId"])
+            print(otp)
             data["homeworks"] = homework_serializer
+            data["otp"] = otp
             return Response(data)
         return Response(status=status.HTTP_403_FORBIDDEN, data={"error": "у вас нету доступа к уроку"})
