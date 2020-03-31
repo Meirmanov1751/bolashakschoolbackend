@@ -52,9 +52,9 @@ class LessonViewSet(ReadOnlyModelViewSet):
             homework = is_in_cart.homework.all()
             homework_serializer = HomeworkSerializer(homework, many=True).data
             data = serializer.data
-            otp = getOtp(data["videoId"])
-            print(otp)
+            if(data["videoId"]):
+                otp = getOtp(data["videoId"])
+                data["otp"] = otp
             data["homeworks"] = homework_serializer
-            data["otp"] = otp
             return Response(data)
         return Response(status=status.HTTP_403_FORBIDDEN, data={"error": "у вас нету доступа к уроку"})
