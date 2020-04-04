@@ -31,7 +31,8 @@ ALLOWED_HOSTS = ['localhost', '178.170.221.110']
 
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:3000",
-    "http://178.170.221.110:8000"
+    "http://178.170.221.110:8000",
+    "http://178.170.221.110"
 ]
 # Application definition
 
