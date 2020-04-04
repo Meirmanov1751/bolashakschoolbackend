@@ -33,7 +33,7 @@ CORS_ORIGIN_WHITELIST = [
     "http://localhost:3000",
     "http://178.170.221.110:8000",
     "http://178.170.221.110",
-    "http://yessenov-online.kz/"
+    "http://yessenov-online.kz"
 ]
 # Application definition
 
