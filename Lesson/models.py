@@ -13,6 +13,10 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = 'Предмет'
+        verbose_name_plural = 'Предметы'
+
 
 class SubCategory(models.Model):
     name = models.CharField(max_length=250)
@@ -22,6 +26,10 @@ class SubCategory(models.Model):
 
     def __str__(self):
         return "%s %s" % (self.category.name, self.name)
+
+    class Meta:
+        verbose_name = 'Раздел'
+        verbose_name_plural = 'Разделы'
 
 
 class Lesson(models.Model):
@@ -35,6 +43,10 @@ class Lesson(models.Model):
     def __str__(self):
         return "%s" % (self.name)
 
+    class Meta:
+        verbose_name = 'Урок'
+        verbose_name_plural = 'Уроки'
+
 
 class Homework(models.Model):
     lesson = models.ForeignKey('Lesson.Lesson', on_delete=models.CASCADE, related_name='homeworks')
@@ -44,19 +56,31 @@ class Homework(models.Model):
     def __str__(self):
         return "%s %s" % (self.lesson.name, self.id)
 
+    class Meta:
+        verbose_name = 'Решение Домашних задач'
+        verbose_name_plural = 'Решение Домашних задач'
+
 
 class LessonMaterial(models.Model):
     lesson = models.ForeignKey('Lesson.Lesson', on_delete=models.CASCADE, related_name='lesson_materials')
     file = models.FileField()
 
+    class Meta:
+        verbose_name = 'Домашнее задание'
+        verbose_name_plural = 'Домашние задания'
+
 
 class UserLesson(models.Model):
     user = models.ForeignKey('Auth.MyUser', on_delete=models.CASCADE, related_name='user_lessons')
-    sub_category = models.ManyToManyField('Lesson.SubCategory', blank=True)
-    homework = models.ManyToManyField('Lesson.Homework', blank=True)
+    sub_category = models.ManyToManyField('Lesson.SubCategory', blank=True, verbose_name="Доступ к разделу")
+    homework = models.ManyToManyField('Lesson.Homework', blank=True, verbose_name="Доступ к решению")
 
     def __str__(self):
         return "%s" % self.user
+
+    class Meta:
+        verbose_name = 'Доступ к урокам'
+        verbose_name_plural = 'Доступ к урокам'
 
 
 def uploadVideo(sender, instance, **kwargs):
@@ -65,4 +89,5 @@ def uploadVideo(sender, instance, **kwargs):
     instance.save()
     post_save.connect(uploadVideo, sender=sender)
 
-post_save.connect(uploadVideo, sender= Lesson)
+
+post_save.connect(uploadVideo, sender=Lesson)

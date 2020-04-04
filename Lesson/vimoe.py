@@ -2,7 +2,7 @@ import json
 import os
 
 import requests
-from requests_toolbelt import MultipartEncoder
+from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 
 api_secret_key = "Sa4o3GvlmOVUPCr8Oh9ERZ7C517y2MLxCAZROVrEOLu5eiz9NntLjMMJ2rSSaFoK"
 
@@ -14,11 +14,16 @@ headers = {
 
 
 def getOtp(videoId):
-    video_url = url + "/"+videoId + "/otp"
+    video_url = url + "/" + videoId + "/otp"
     response = requests.request("POST", video_url, headers=headers)
     return response.json()
 
-def upload(filename, title):
+
+def my_callback(monitor):
+    print(monitor)
+
+
+async def upload(filename, title):
     querystring = {"title": title}
 
     response = requests.request("PUT", url, headers=headers, params=querystring)
@@ -30,7 +35,7 @@ def upload(filename, title):
     clientPayload = uploadInfo['clientPayload']
     uploadLink = clientPayload['uploadLink']
 
-    m = MultipartEncoder(fields=[
+    e = MultipartEncoder(fields=[
         ('x-amz-credential', clientPayload['x-amz-credential']),
         ('x-amz-algorithm', clientPayload['x-amz-algorithm']),
         ('x-amz-date', clientPayload['x-amz-date']),
@@ -41,7 +46,7 @@ def upload(filename, title):
         ('success_action_redirect', ''),
         ('file', ('filename', open(filename, 'rb'), 'text/plain'))
     ])
-
+    m = MultipartEncoderMonitor(e, my_callback)
     response = requests.post(
         uploadLink,
         data=m,

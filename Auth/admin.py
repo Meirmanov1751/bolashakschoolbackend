@@ -65,7 +65,7 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password', 'type')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'fathers_name')}),
-        ('Permissions', {'fields': ('is_admin',)}),
+        ('Permissions', {'fields': ('is_admin','is_active')}),
     )
 
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
@@ -86,3 +86,6 @@ admin.site.register(MyUser, UserAdmin)
 # ... and, since we're not using Django's built-in permissions,
 # unregister the Group model from admin.
 admin.site.unregister(Group)
+admin.site.site_header = "Yessenov online"
+admin.site.site_title = "Yessenov online Admin Portal"
+admin.site.index_title = "Welcome to Yessenov online Administration"
