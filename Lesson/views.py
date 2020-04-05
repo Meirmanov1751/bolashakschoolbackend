@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 # Create your views here.
-from Auth.models import UserGroups
+from Auth.models import UserGroups, MyUser
 from Lesson.models import Category, Lesson, LessonMaterial, SubCategory, UserLesson
 from Lesson.permissions import IsActiveAndIsAuthenticated
 from Lesson.serializers import CategorySerializer, SubCategorySerializer, LessonSerializer, RetrieveCategorySerializer, \
@@ -16,6 +16,25 @@ class CategoryViewSet(ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
     permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        user_groups = UserGroups.objects.filter(users=self.request.user)
+        sub_categories = user_groups.values_list('sub_category__id', flat=True)
+        pk = self.kwargs['pk']
+        category = Category.objects.filter(pk=pk).filter(sub_categories__in=sub_categories)
+        sub_categories_list = category.values_list('sub_categories', flat=True)
+        sub_categories = SubCategory.objects.filter(id__in=sub_categories)
+        sub_categories_serializer = SubCategorySerializer(sub_categories, many=True)
+        print(sub_categories_serializer.data)
+        data = serializer.data
+        data["sub_categories"] = []
+
+        if category.count() > 0:
+            data["sub_categories"] = sub_categories_serializer.data
+        return Response(data)
+
 
     def get_serializer_class(self, *args, **kwargs):
         if self.action == 'retrieve':
@@ -34,6 +53,7 @@ class SubCategoryViewSet(ReadOnlyModelViewSet):
             user_groups = UserGroups.objects.filter(users=user).first()
             return user_groups.sub_category
         return SubCategory.objects.all()
+
     def get_serializer_class(self, *args, **kwargs):
         print(self.action)
         if self.action == 'retrieve':
