@@ -1,6 +1,5 @@
 import uuid
 
-
 from django.contrib.auth.models import (
     BaseUserManager, AbstractBaseUser
 )
@@ -9,6 +8,7 @@ from django.db import models
 from django.db.models import signals
 from django.urls import reverse
 from .tasks import send_verification_email
+
 
 class MyUserManager(BaseUserManager):
     def create_user(self, email, password=None):
@@ -95,9 +95,22 @@ class MyUser(AbstractBaseUser):
         return self.is_admin
 
 
+class UserGroups(models.Model):
+    name = models.CharField('Имя группы', max_length=300)
+    users = models.ManyToManyField('Auth.MyUser', verbose_name="Добавить пользователя", blank=True)
+    sub_category = models.ManyToManyField('Lesson.SubCategory', verbose_name='Доступ к разделам', blank=True)
+
+    class Meta:
+        verbose_name = 'Группа'
+        verbose_name_plural = 'Группы'
+
+    def __str__(self):
+        return self.name
+
 def user_post_save(sender, instance, signal, *args, **kwargs):
     if not instance.is_verified:
         # Send verification email
         send_verification_email.delay(instance.pk)
+
 
 signals.post_save.connect(user_post_save, sender=MyUser)

@@ -9,9 +9,10 @@ class UserLessonAdmin(admin.ModelAdmin):
     autocomplete_fields = ['user']
     filter_horizontal = ('sub_category', 'homework')
 
+
 class LessonInlineAdmin(admin.TabularInline):
     model = Lesson
-    exclude = ('videoId',)
+
     def admin_link(self, instance):
         url = reverse('admin:%s_%s_change' % (instance._meta.app_label,
                                               instance._meta.model_name),
@@ -21,10 +22,15 @@ class LessonInlineAdmin(admin.TabularInline):
         return format_html(u'<a href="{}">Edit: {}</a>', url, instance.name)
 
     readonly_fields = ('admin_link',)
+
+
 class SubCategoryAdmin(admin.ModelAdmin):
     inlines = [LessonInlineAdmin]
+
+
 class SubCategoryInlineAdmin(admin.TabularInline):
     model = SubCategory
+
     def admin_link(self, instance):
         url = reverse('admin:%s_%s_change' % (instance._meta.app_label,
                                               instance._meta.model_name),
@@ -35,8 +41,10 @@ class SubCategoryInlineAdmin(admin.TabularInline):
 
     readonly_fields = ('admin_link',)
 
+
 class CategoryAdmin(admin.ModelAdmin):
-    inlines = [SubCategoryInlineAdmin,]
+    inlines = [SubCategoryInlineAdmin, ]
+
 
 admin.site.register(LessonMaterial)
 admin.site.register(Lesson)

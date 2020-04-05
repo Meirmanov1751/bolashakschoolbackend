@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 # Create your views here.
+from Auth.models import UserGroups
 from Lesson.models import Category, Lesson, LessonMaterial, SubCategory, UserLesson
 from Lesson.permissions import IsActiveAndIsAuthenticated
 from Lesson.serializers import CategorySerializer, SubCategorySerializer, LessonSerializer, RetrieveCategorySerializer, \
@@ -47,14 +48,14 @@ class LessonViewSet(ReadOnlyModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        is_in_cart = UserLesson.objects.filter(sub_category=instance.sub_category).filter(user=request.user).first()
+        is_in_cart = UserGroups.objects.filter(sub_category=instance.sub_category).filter(users=request.user).first()
         if is_in_cart:
-            homework = is_in_cart.homework.all()
-            homework_serializer = HomeworkSerializer(homework, many=True).data
+            # homework = is_in_cart.homework.all()
+            # homework_serializer = HomeworkSerializer(homework, many=True).data
             data = serializer.data
-            if(data["videoId"]):
-                otp = getOtp(data["videoId"])
-                data["otp"] = otp
-            data["homeworks"] = homework_serializer
+            # if(data["videoId"]):
+            #     otp = getOtp(data["videoId"])
+            #     data["otp"] = otp
+            # data["homeworks"] = homework_serializer
             return Response(data)
         return Response(status=status.HTTP_403_FORBIDDEN, data={"error": "у вас нету доступа к уроку"})
