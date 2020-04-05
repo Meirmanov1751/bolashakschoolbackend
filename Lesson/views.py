@@ -28,6 +28,12 @@ class SubCategoryViewSet(ReadOnlyModelViewSet):
     queryset = SubCategory.objects.all()
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        if self.action == 'list':
+            user = self.request.user
+            user_groups = UserGroups.objects.filter(users=user).first()
+            return user_groups.sub_category
+        return SubCategory.objects.all()
     def get_serializer_class(self, *args, **kwargs):
         print(self.action)
         if self.action == 'retrieve':
