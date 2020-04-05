@@ -4,14 +4,35 @@ services:
     image: postgres:10.1-alpine
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+  redis:
+    image: "redis:alpine"
   web:
     build: .
-    command: python /code/manage.py runserver 0.0.0.0:8000
+    command: bash -c "python /code/manage.py makemigrations && python /code/manage.py migrate --noinput && python /code/manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
     ports:
       - 8000:8000
     depends_on:
       - db
+      - redis
+  celery:
+    build: .
+    command: celery -A OnlinePlatform worker -l info --loglevel=DEBUG
+    volumes:
+      - .:/code
+    depends_on:
+      - web
+      - db
+      - redis
+  celery-beat:
+    build: .
+    command: celery -A OnlinePlatform beat -l info --loglevel=DEBUG
+    volumes:
+      - .:/code
+    depends_on:
+      - web
+      - db
+      - redis
 volumes:
   postgres_data:

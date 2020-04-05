@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate
-from django.shortcuts import render
+from django.http import Http404
+from django.shortcuts import render, redirect
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, AllowAny
@@ -58,3 +59,15 @@ class UserViewSet(CreateModelMixin, UpdateModelMixin, GenericViewSet):
         data["password"] = ""
         data["token"] = str(token.access_token)
         return Response(status=200, data={'user': data})
+
+
+def verify(request, uuid):
+    try:
+        user = MyUser.objects.get(verification_uuid=uuid, is_verified=False)
+    except MyUser.DoesNotExist:
+        raise Http404("User does not exist or is already verified")
+
+    user.is_verified = True
+    user.save()
+
+    return redirect('https://yessenov-online.kz')

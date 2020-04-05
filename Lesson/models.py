@@ -35,8 +35,8 @@ class SubCategory(models.Model):
 class Lesson(models.Model):
     name = models.CharField(max_length=500)
     description = models.TextField(blank=True, null=True)
-    video = models.FileField(null=True, blank=True)
-    videoId = models.CharField(max_length=300, null=True, blank=True)
+    # video = models.FileField(null=True, blank=True)
+    videoId = models.TextField(max_length=300, null=True, blank=True)
     image = models.ImageField(null=True, blank=True)
     sub_category = models.ForeignKey('Lesson.SubCategory', on_delete=models.CASCADE, related_name='lessons', null=True)
 
@@ -82,12 +82,12 @@ class UserLesson(models.Model):
         verbose_name = 'Доступ к урокам'
         verbose_name_plural = 'Доступ к урокам'
 
-
-def uploadVideo(sender, instance, **kwargs):
-    post_save.disconnect(uploadVideo, sender=sender)
-    instance.videoId = upload(instance.video.path, instance.name)
-    instance.save()
-    post_save.connect(uploadVideo, sender=sender)
-
-
-post_save.connect(uploadVideo, sender=Lesson)
+#
+# def uploadVideo(sender, instance, **kwargs):
+#     post_save.disconnect(uploadVideo, sender=sender)
+#     instance.videoId = upload(instance.video.path, instance.name)
+#     instance.save()
+#     post_save.connect(uploadVideo, sender=sender)
+#
+#
+# post_save.connect(uploadVideo, sender=Lesson)
