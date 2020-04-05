@@ -27,13 +27,16 @@ SECRET_KEY = 'z7b$(mlu3-3r*fk7!c269+8codqs9#b4xy2)p(wh$ss%mtcxxj'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '178.170.221.110', 'yessenov-online.kz']
+ALLOWED_HOSTS = ['localhost', '178.170.221.110', 'yessenov-online.kz', 'api.yessenov-online.kz']
 
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:3000",
     "http://178.170.221.110:8000",
     "http://178.170.221.110",
-    "http://yessenov-online.kz"
+    "http://yessenov-online.kz",
+    "https://yessenov-online.kz",
+    "http://api.yessenov-online.kz",
+    "http://api.yessenov-online.kz"
 ]
 # Application definition
 
