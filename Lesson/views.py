@@ -8,7 +8,7 @@ from Auth.models import UserGroups, MyUser
 from Lesson.models import Category, Lesson, LessonMaterial, SubCategory, UserLesson
 from Lesson.permissions import IsActiveAndIsAuthenticated
 from Lesson.serializers import CategorySerializer, SubCategorySerializer, LessonSerializer, RetrieveCategorySerializer, \
-    RetrieveSubCategorySerializer, RetrieveLessonSerializer, HomeworkSerializer
+    RetrieveSubCategorySerializer, RetrieveLessonSerializer, HomeworkSerializer, SubCategorySerializerWithImageUrl
 from Lesson.vimoe import getOtp
 
 
@@ -25,8 +25,8 @@ class CategoryViewSet(ReadOnlyModelViewSet):
         pk = self.kwargs['pk']
         category = Category.objects.filter(pk=pk).filter(sub_categories__in=sub_categories)
         sub_categories_list = category.values_list('sub_categories', flat=True)
-        sub_categories = SubCategory.objects.filter(id__in=sub_categories)
-        sub_categories_serializer = SubCategorySerializer(sub_categories, many=True)
+        sub_categories = SubCategory.objects.filter(id__in=sub_categories_list)
+        sub_categories_serializer = SubCategorySerializerWithImageUrl(sub_categories, many=True,  context={"request": self.request})
         print(sub_categories_serializer.data)
         data = serializer.data
         data["sub_categories"] = []
