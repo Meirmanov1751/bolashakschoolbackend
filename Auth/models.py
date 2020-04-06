@@ -67,6 +67,10 @@ class MyUser(AbstractBaseUser):
     is_admin = models.BooleanField(default=False, verbose_name='Админ')
     is_verified = models.BooleanField(verbose_name='Подтверждение почты', default=False)
     verification_uuid = models.UUIDField('Unique Verification UUID', default=uuid.uuid4)
+
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+
     objects = MyUserManager()
 
     USERNAME_FIELD = 'email'
