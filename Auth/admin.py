@@ -3,8 +3,10 @@ from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from django.urls import reverse
+from django.utils.html import format_html
 
-from .models import MyUser, UserGroups
+from .models import MyUser, UserGroups, Analytics, AnalyticsChild
 
 
 class UserCreationForm(forms.ModelForm):
@@ -15,7 +17,7 @@ class UserCreationForm(forms.ModelForm):
 
     class Meta:
         model = MyUser
-        fields = ('email', )
+        fields = ('email',)
 
     def clean_password2(self):
         # Check that the two password entries match
@@ -52,6 +54,31 @@ class UserChangeForm(forms.ModelForm):
         return self.initial["password"]
 
 
+class AnalyticsChildTabularAdmin(admin.TabularInline):
+    model = AnalyticsChild
+    readonly_fields = ('path', 'user', 'admin_link')
+    ordering = ('created_date',)
+
+    def admin_link(self, instance):
+        url = reverse('admin:%s_%s_change' % (instance._meta.app_label,
+                                              'myuser'),
+                      args=(instance.user.id,))
+        return format_html(u'<a href="{}">Посмотреть пользователя</a>', url)
+
+
+class LimitedAnalyticsChildTabularAdminLimited(admin.TabularInline):
+    model = AnalyticsChild
+    readonly_fields = ('path', 'user', 'admin_link')
+    ordering = ('created_date',)
+    max_num = 5
+
+    def admin_link(self, instance):
+        url = reverse('admin:%s_%s_changelist' % (instance._meta.app_label,
+                                                  'analyticschild'))
+        url += '?q=%s' % (instance.user.email)
+        return format_html(u'<a href="{}">Посмотреть пользователя</a>', url)
+
+
 class UserAdmin(BaseUserAdmin):
     # The forms to add and change user instances
     form = UserChangeForm
@@ -64,8 +91,8 @@ class UserAdmin(BaseUserAdmin):
     list_filter = ('is_admin', 'type', 'is_active')
     fieldsets = (
         (None, {'fields': ('email', 'password', 'type')}),
-        ('Personal info', {'fields': ('first_name', 'last_name', 'fathers_name')}),
-        ('Permissions', {'fields': ('is_admin','is_active', 'is_verified')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'fathers_name', 'phone')}),
+        ('Permissions', {'fields': ('is_admin', 'is_active', 'is_verified')}),
     )
 
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
@@ -79,10 +106,26 @@ class UserAdmin(BaseUserAdmin):
     search_fields = ['email', 'first_name', 'last_name']
     ordering = ('email',)
     filter_horizontal = ()
+    inlines = [LimitedAnalyticsChildTabularAdminLimited, ]
+
 
 class UserGroupsAdmin(admin.ModelAdmin):
     search_fields = ['name', 'sub_category__name']
     filter_horizontal = ('users', 'sub_category')
+
+
+class AnalyticsChildAdmin(admin.ModelAdmin):
+    search_fields = ('user__first_name', 'user__email', 'analytics__created_date')
+    list_display = ('user', 'created_date')
+
+
+class AnalyticsAdmin(admin.ModelAdmin):
+    inlines = [AnalyticsChildTabularAdmin, ]
+    search_fields = ('created_date',)
+
+
+admin.site.register(Analytics, AnalyticsAdmin)
+admin.site.register(AnalyticsChild, AnalyticsChildAdmin)
 # Now register the new UserAdmin...
 admin.site.register(MyUser, UserAdmin)
 admin.site.register(UserGroups, UserGroupsAdmin)

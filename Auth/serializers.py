@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, Serializer
-from .models import MyUser
+from .models import MyUser, AnalyticsChild
 
 
 class UserWriteSerializer(ModelSerializer):
@@ -32,6 +32,12 @@ class UserReadSerializer(ModelSerializer):
     class Meta:
         model = MyUser
         exclude = ('password', 'is_admin', 'is_active')
+
+
+class AnalyticsChildSerializer(ModelSerializer):
+    class Meta:
+        model = AnalyticsChild
+        fields = '__all__'
 
 class LoginSerializer(Serializer):
     username = serializers.CharField()

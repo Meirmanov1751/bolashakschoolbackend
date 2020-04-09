@@ -6,6 +6,7 @@ from django.contrib.auth.models import (
 from django.core.mail import send_mail
 from django.db import models
 from django.db.models import signals
+from django.db.models.signals import post_save
 from django.urls import reverse
 from .tasks import send_verification_email
 
@@ -61,12 +62,13 @@ class MyUser(AbstractBaseUser):
     first_name = models.CharField(max_length=100, null=True, blank=True, verbose_name='Имя')
     last_name = models.CharField(max_length=100, null=True, blank=True, verbose_name='Фамилия')
     fathers_name = models.CharField(max_length=100, null=True, blank=True, verbose_name='Отчество')
-
+    phone = models.CharField(max_length=20, verbose_name='Номер телефона', null=True, blank=True)
     type = models.PositiveSmallIntegerField(choices=ROLES.ROLE_CHOICES, default=ROLES.STUDENT, verbose_name='Тип')
     is_active = models.BooleanField(default=True, verbose_name='Активный')
     is_admin = models.BooleanField(default=False, verbose_name='Админ')
     is_verified = models.BooleanField(verbose_name='Подтверждение почты', default=False)
     verification_uuid = models.UUIDField('Unique Verification UUID', default=uuid.uuid4)
+    device_id = models.CharField(max_length=300, null=True, blank=True)
 
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     modified = models.DateTimeField(auto_now=True, null=True, blank=True)
@@ -111,10 +113,50 @@ class UserGroups(models.Model):
     def __str__(self):
         return self.name
 
+
+class Analytics(models.Model):
+    created_date = models.DateField(auto_now_add=True, blank=True, null=True, verbose_name='дата создания')
+
+    class Meta:
+        verbose_name = 'Аналитика'
+        verbose_name_plural = 'Аналитика'
+
+    def __str__(self):
+        return str(self.created_date)
+
+
+class AnalyticsChild(models.Model):
+    analytics = models.ForeignKey('Auth.Analytics', on_delete=models.CASCADE, null=True, blank=True)
+    created_date = models.DateTimeField(auto_now_add=True, blank=True, null=True, verbose_name='дата создания')
+    user = models.ForeignKey('Auth.MyUser', verbose_name="Пользователь", on_delete=models.CASCADE, blank=True)
+    path = models.URLField(verbose_name='Посещенная страница')
+
+    class Meta:
+        verbose_name = 'Детальная аналитика'
+        verbose_name_plural = 'Детальная аналитика'
+
+    def __str__(self):
+        return "%s %s" % (self.created_date, self.user.email)
+
+
 def user_post_save(sender, instance, signal, *args, **kwargs):
     if not instance.is_verified:
         # Send verification email
         send_verification_email.delay(instance.pk)
 
 
+def analytics_child_post_save(sender, instance, signal, *args, **kwargs):
+    date = instance.created_date.date()
+    analytics = Analytics.objects.filter(created_date=date)
+    post_save.disconnect(analytics_child_post_save, sender=sender)
+    if len(analytics) == 0:
+        analytics = Analytics.objects.create()
+    else:
+        analytics = analytics[0]
+    instance.analytics = analytics
+    instance.save()
+    post_save.connect(analytics_child_post_save, sender=sender)
+
+
+signals.post_save.connect(analytics_child_post_save, sender=AnalyticsChild)
 signals.post_save.connect(user_post_save, sender=MyUser)

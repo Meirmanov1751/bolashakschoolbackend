@@ -10,7 +10,7 @@ from rest_framework.mixins import CreateModelMixin, UpdateModelMixin
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .permissions import CreateAndIsAuthenticated
-from .serializers import UserReadSerializer, UserWriteSerializer, LoginSerializer
+from .serializers import UserReadSerializer, UserWriteSerializer, LoginSerializer, AnalyticsChildSerializer
 from .models import MyUser
 
 
@@ -37,6 +37,16 @@ class UserViewSet(CreateModelMixin, UpdateModelMixin, GenericViewSet):
         if self.request.method in SAFE_METHODS:
             return UserReadSerializer
         return UserWriteSerializer
+
+    @action(detail=False, methods=["post"])
+    def analytics(self, request, *args, **kwargs):
+        request_data = request.data.copy()
+        request_data['user'] = request.user.id
+        analytics_serializer = AnalyticsChildSerializer(data=request_data)
+        if analytics_serializer.is_valid(raise_exception=True):
+            analytics_serializer_create = analytics_serializer.create(analytics_serializer.validated_data)
+            analytics_serializer_create = AnalyticsChildSerializer(analytics_serializer_create)
+            return Response(status=200, data={'message': analytics_serializer_create.data})
 
     @action(detail=False, methods=["get"])
     def me(self, request, *args, **kwargs):
