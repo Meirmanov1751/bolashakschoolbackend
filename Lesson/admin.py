@@ -45,9 +45,28 @@ class SubCategoryInlineAdmin(admin.TabularInline):
 class CategoryAdmin(admin.ModelAdmin):
     inlines = [SubCategoryInlineAdmin, ]
 
+class LessonMaterialInlineAdmin(admin.TabularInline):
+    model = LessonMaterial
 
-admin.site.register(LessonMaterial)
-admin.site.register(Lesson)
+    def admin_link(self, instance):
+        url = reverse('admin:%s_%s_change' % (instance._meta.app_label,
+                                              instance._meta.model_name),
+                      args=(instance.id,))
+        # return format_html(u'<a href="{}">Edit</a>', url)
+        # … or if you want to include other fields:
+        return format_html(u'<a href="{}">Edit: {}</a>', url, instance.name)
+
+    readonly_fields = ('admin_link',)
+class LessonMaterialAdmin(admin.ModelAdmin):
+    autocomplete_fields = ('lesson',)
+
+
+class LessonAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
+    inlines = [LessonMaterialInlineAdmin,]
+
+admin.site.register(LessonMaterial, LessonMaterialAdmin)
+admin.site.register(Lesson, LessonAdmin)
 admin.site.register(SubCategory, SubCategoryAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(UserLesson, UserLessonAdmin)

@@ -63,9 +63,10 @@ class Homework(models.Model):
 
 
 class LessonMaterial(models.Model):
-    lesson = models.ForeignKey('Lesson.Lesson', on_delete=models.CASCADE, related_name='lesson_materials')
-    file = models.FileField()
-
+    lesson = models.ForeignKey('Lesson.Lesson', on_delete=models.CASCADE, related_name='lesson_materials', verbose_name='Урок')
+    name = models.CharField(max_length=300, null=True, blank=True, verbose_name='Имя')
+    description = models.TextField(null=True, blank=True, verbose_name='Описание')
+    file = models.FileField(verbose_name='Документ')
     class Meta:
         verbose_name = 'Домашнее задание'
         verbose_name_plural = 'Домашние задания'

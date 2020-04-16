@@ -67,7 +67,7 @@ class MyUser(AbstractBaseUser):
     is_active = models.BooleanField(default=True, verbose_name='Активный')
     is_admin = models.BooleanField(default=False, verbose_name='Админ')
     is_verified = models.BooleanField(verbose_name='Подтверждение почты', default=False)
-    verification_uuid = models.UUIDField('Unique Verification UUID', default=uuid.uuid4)
+    verification_uuid = models.UUIDField('Unique Verification UUID', default=uuid.uuid4)    
     device_id = models.CharField(max_length=300, null=True, blank=True)
 
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
