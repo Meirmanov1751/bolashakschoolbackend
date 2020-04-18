@@ -63,10 +63,9 @@ class SubCategorySerializerWithImageUrl(ModelSerializer):
         fields = ('id', 'name', 'description', 'image')
 
     def get_thumbnail_url(self, obj):
-        request = self.context['request']
-        return "https://%s%s" %(request.get_host(), obj.image.url)
-        # return .build_absolute_uri(obj.image.url)
-#
+
+        return self.context['request'].build_absolute_uri(obj.image.url)
+
 
 class RetrieveCategorySerializer(ModelSerializer):
     sub_categories = SubCategorySerializer(many=True)
