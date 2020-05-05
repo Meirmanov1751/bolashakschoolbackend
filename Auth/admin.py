@@ -6,6 +6,7 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.urls import reverse
 from django.utils.html import format_html
 
+from common.paginator import TimeLimitedPaginator
 from .models import MyUser, UserGroups, Analytics, AnalyticsChild
 
 
@@ -115,11 +116,13 @@ class UserGroupsAdmin(admin.ModelAdmin):
 
 
 class AnalyticsChildAdmin(admin.ModelAdmin):
+    paginator = TimeLimitedPaginator
     search_fields = ('user__first_name', 'user__email', 'analytics__created_date')
     list_display = ('user', 'created_date')
 
 
 class AnalyticsAdmin(admin.ModelAdmin):
+    paginator = TimeLimitedPaginator
     inlines = [AnalyticsChildTabularAdmin, ]
     search_fields = ('created_date',)
 
