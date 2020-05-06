@@ -7,11 +7,6 @@ import logging
 from OnlinePlatform.celery import app
 
 
-@shared_task
-def hello():
-    print("Hello there!")
-
-
 @app.task
 def send_verification_email(user_id):
     UserModel = get_user_model()

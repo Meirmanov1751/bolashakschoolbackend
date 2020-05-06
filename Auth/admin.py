@@ -3,11 +3,14 @@ from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from django.core.paginator import EmptyPage, InvalidPage, Paginator
 from django.urls import reverse
 from django.utils.html import format_html
 
 from common.paginator import TimeLimitedPaginator
 from .models import MyUser, UserGroups, Analytics, AnalyticsChild
+from django.contrib.admin.views.main import ChangeList
+from django.core.paginator import EmptyPage, InvalidPage, Paginator
 
 
 class UserCreationForm(forms.ModelForm):
@@ -54,12 +57,56 @@ class UserChangeForm(forms.ModelForm):
         # field does not have access to the initial value
         return self.initial["password"]
 
+class InlineChangeList(object):
+    can_show_all = True
+    multi_page = True
+    get_query_string = ChangeList.__dict__['get_query_string']
+
+    def __init__(self, request, page_num, paginator):
+        self.show_all = 'all' in request.GET
+        self.page_num = page_num
+        self.paginator = paginator
+        self.result_count = paginator.count
+        self.params = dict(request.GET.items())
 
 class AnalyticsChildTabularAdmin(admin.TabularInline):
     model = AnalyticsChild
     readonly_fields = ('path', 'user', 'admin_link')
     ordering = ('created_date',)
+    template = 'admin/edit_inline/list.html'
+    per_page = 10
+    extra = 0
+    can_delete = False
+    def get_formset(self, request, obj=None, **kwargs):
+        formset_class = super(AnalyticsChildTabularAdmin, self).get_formset(
+            request, obj, **kwargs)
+        class PaginationFormSet(formset_class):
+            def __init__(self, *args, **kwargs):
+                super(PaginationFormSet, self).__init__(*args, **kwargs)
 
+                qs = self.queryset
+                paginator = Paginator(qs, self.per_page)
+                try:
+                    page_num = int(request.GET.get('page', ['0'])[0])
+                except ValueError:
+                    page_num = 0
+
+                try:
+                    page = paginator.page(page_num + 1)
+                except (EmptyPage, InvalidPage):
+                    page = paginator.page(paginator.num_pages)
+
+                self.page = page
+                self.cl = InlineChangeList(request, page_num, paginator)
+                self.paginator = paginator
+
+                if self.cl.show_all:
+                    self._queryset = qs
+                else:
+                    self._queryset = page.object_list
+
+        PaginationFormSet.per_page = self.per_page
+        return PaginationFormSet
     def admin_link(self, instance):
         url = reverse('admin:%s_%s_change' % (instance._meta.app_label,
                                               'myuser'),
