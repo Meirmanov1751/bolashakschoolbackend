@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 # Create your views here.
+from Analytics.models import AnalyticsLesson
 from Auth.models import UserGroups, MyUser
 from Lesson.models import Category, Lesson, LessonMaterial, SubCategory, UserLesson
 from Lesson.permissions import IsActiveAndIsAuthenticated
@@ -74,6 +75,10 @@ class LessonViewSet(ReadOnlyModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
+        # analytics_lesson = AnalyticsLesson.objects.filter(user=request.user).filter(lesson=instance)
+        # if len(analytics_lesson) == 0:
+        #     AnalyticsLesson.objects.create(user=request.user, lesson=instance)
+
         is_in_cart = UserGroups.objects.filter(sub_category=instance.sub_category).filter(users=request.user).first()
         if is_in_cart:
             # homework = is_in_cart.homework.all()

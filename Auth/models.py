@@ -67,15 +67,20 @@ class MyUser(AbstractBaseUser):
     is_active = models.BooleanField(default=True, verbose_name='Активный')
     is_admin = models.BooleanField(default=False, verbose_name='Админ')
     is_verified = models.BooleanField(verbose_name='Подтверждение почты', default=False)
-    verification_uuid = models.UUIDField('Unique Verification UUID', default=uuid.uuid4)    
+    verification_uuid = models.UUIDField('Unique Verification UUID', default=uuid.uuid4)
     device_id = models.CharField(max_length=300, null=True, blank=True)
 
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    active_until = models.DateField('Активен до', null=True, blank=True)
     modified = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     objects = MyUserManager()
 
     USERNAME_FIELD = 'email'
+
+    def __init__(self, *args, **kwargs):
+        super(MyUser, self).__init__(*args, **kwargs)
+        self.__original_active_until = self.active_until
 
     class Meta:
         verbose_name = 'Пользователь'
@@ -99,6 +104,12 @@ class MyUser(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
+
+
+class ActivationChange(models.Model):
+    user = models.ForeignKey('Auth.MyUser', on_delete=models.CASCADE)
+    activation_date = models.DateField('Дата активации')
+    group_names = models.TextField()
 
 
 class UserGroups(models.Model):
@@ -143,7 +154,14 @@ def user_post_save(sender, instance, signal, *args, **kwargs):
     if not instance.is_verified:
         # Send verification email
         send_verification_email.delay(instance.pk)
-
+def user_pre_save(sender, instance, *args, **kwargs):
+    user = MyUser.objects.get(pk=instance.id)
+    if user.active_until != instance.active_until:
+        user_groups = UserGroups.objects.filter(users=instance)
+        user_groups_names = ''
+        for group in user_groups:
+            user_groups_names += group.name + " \n"
+        ActivationChange.objects.create(user=instance, activation_date=user.active_until, group_names=user_groups_names)
 
 def analytics_child_post_save(sender, instance, signal, *args, **kwargs):
     date = instance.created_date.date()
@@ -157,6 +175,6 @@ def analytics_child_post_save(sender, instance, signal, *args, **kwargs):
     instance.save()
     post_save.connect(analytics_child_post_save, sender=sender)
 
-
+signals.pre_save.connect(user_pre_save, sender=MyUser)
 signals.post_save.connect(analytics_child_post_save, sender=AnalyticsChild)
 signals.post_save.connect(user_post_save, sender=MyUser)

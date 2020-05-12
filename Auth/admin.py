@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 
 from common.paginator import TimeLimitedPaginator
-from .models import MyUser, UserGroups, Analytics, AnalyticsChild
+from .models import MyUser, UserGroups, Analytics, AnalyticsChild, ActivationChange
 from django.contrib.admin.views.main import ChangeList
 from django.core.paginator import EmptyPage, InvalidPage, Paginator
 
@@ -126,7 +126,11 @@ class LimitedAnalyticsChildTabularAdminLimited(admin.TabularInline):
         url += '?q=%s' % (instance.user.email)
         return format_html(u'<a href="{}">Посмотреть пользователя</a>', url)
 
-
+class UserGroupsInline(admin.TabularInline):
+    model = UserGroups.users.through
+class HistoryGroupsInline(admin.TabularInline):
+    model = ActivationChange
+    readonly_fields = ['user', 'group_names', 'activation_date']
 class UserAdmin(BaseUserAdmin):
     # The forms to add and change user instances
     form = UserChangeForm
@@ -140,7 +144,7 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password', 'type')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'fathers_name', 'phone')}),
-        ('Permissions', {'fields': ('is_admin', 'is_active', 'is_verified')}),
+        ('Permissions', {'fields': ('is_admin', 'is_active', 'is_verified', 'active_until')}),
     )
 
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
@@ -154,7 +158,7 @@ class UserAdmin(BaseUserAdmin):
     search_fields = ['email', 'first_name', 'last_name']
     ordering = ('email',)
     filter_horizontal = ()
-    inlines = [LimitedAnalyticsChildTabularAdminLimited, ]
+    inlines = [UserGroupsInline, HistoryGroupsInline]
 
 
 class UserGroupsAdmin(admin.ModelAdmin):

@@ -48,12 +48,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'Auth',
+    'Analytics',
     'Lesson',
     'News',
     'rest_framework',
     'psycopg2',
     'rest_framework_simplejwt',
     'corsheaders',
+    'mdeditor'
 ]
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=365),
@@ -168,3 +170,12 @@ CELERY_RESULT_BACKEND = 'redis://redis:6379'
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+
+CELERY_BEAT_SCHEDULE = {
+    'hello': {
+        'task': 'Auth.tasks.check_user_status_expired',
+        'schedule': crontab(hour=4)  # execute every minute
+    }
+}
+
+X_FRAME_OPTIONS = 'SAMEORIGIN'

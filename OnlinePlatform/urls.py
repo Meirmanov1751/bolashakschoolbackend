@@ -29,5 +29,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
     url(r'^verify/(?P<uuid>[a-z0-9\-]+)/', verify, name='verify'),
+    url(r'mdeditor/', include('mdeditor.urls'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
