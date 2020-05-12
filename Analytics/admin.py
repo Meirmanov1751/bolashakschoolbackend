@@ -25,4 +25,4 @@ class AnalyticsCategoryAdmin(admin.ModelAdmin):
 
 # admin.site.register(AnalyticsCategory, AnalyticsCategoryAdmin)
 # admin.site.register(Analytics, AnalyticsAdmin)
-# admin.site.register(AnalyticsLesson)
+# admin.site    .register(AnalyticsLesson)

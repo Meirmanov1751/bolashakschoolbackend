@@ -32,18 +32,19 @@ def check_user_status_expired():
     users = UserModel.objects.all()
     print('user status check')
     for user in users:
-        if user.active_until < datetime.datetime.now().date() and user.is_active and not user.is_admin:
-            user.is_active = False
-            print(user.email + ' user is not active')
-            user.save()
-            try:
-                send_mail(
-                    'Истичение срока действия аккаунта',
-                    'В связи с тем что срок действия вашего аккаунта был исчерпан просим вас обратиться '+
-                    ' к Администрации, либо же вашему учителю',
-                    'yessenov.online@bk.ru',
-                    [user.email],
-                    fail_silently=False,
-                    )
-            except UserModel.DoesNotExist:
-                logging.warning("Tried to send verification email to non-existing user '%s'" % user.id)
+        if user.active_until is not None:
+            if user.active_until < datetime.datetime.now().date() and user.is_active and not user.is_admin:
+                user.is_active = False
+                print(user.email + ' user is not active')
+                user.save()
+                try:
+                    send_mail(
+                        'Истичение срока действия аккаунта',
+                        'В связи с тем что срок действия вашего аккаунта был исчерпан просим вас обратиться '+
+                        ' к Администрации, либо же вашему учителю',
+                        'yessenov.online@bk.ru',
+                        [user.email],
+                        fail_silently=False,
+                        )
+                except UserModel.DoesNotExist:
+                    logging.warning("Tried to send verification email to non-existing user '%s'" % user.id)
