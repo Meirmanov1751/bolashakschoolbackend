@@ -147,13 +147,13 @@ class HistoryGroupsInline(admin.TabularInline):
 class UserResource(resources.ModelResource):
     class Meta:
         model = MyUser
-        fields = ('email', 'first_name', 'last_name', 'active_until', 'activationchange__group_names')
+        fields = ('email', 'first_name', 'last_name')
 
 
 class ActivationResource(resources.ModelResource):
     class Meta:
         model = ActivationChange
-        fields = ('user__email', 'user__first_name', 'user__last_name', 'activation_date', 'user_groups')
+        fields = ('user__email', 'user__first_name', 'user__last_name', 'activation_date', 'group_names')
 
 class ActivationAdmin(ImportExportModelAdmin):
     resource_class = ActivationResource

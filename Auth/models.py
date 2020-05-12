@@ -154,14 +154,14 @@ def user_post_save(sender, instance, signal, *args, **kwargs):
     if not instance.is_verified:
         # Send verification email
         send_verification_email.delay(instance.pk)
-def user_pre_save(sender, instance, *args, **kwargs):
-    user = MyUser.objects.get(pk=instance.id)
-    if user.active_until != instance.active_until:
-        user_groups = UserGroups.objects.filter(users=instance)
-        user_groups_names = ''
-        for group in user_groups:
-            user_groups_names += group.name + " \n"
-        ActivationChange.objects.create(user=instance, activation_date=user.active_until, group_names=user_groups_names)
+# def user_pre_save(sender, instance, *args, **kwargs):
+#     user = MyUser.objects.get(pk=instance.id)
+#     if user.active_until != instance.active_until:
+#         user_groups = UserGroups.objects.filter(users=instance)
+#         user_groups_names = ''
+#         for group in user_groups:
+#             user_groups_names += group.name + " \n"
+#         ActivationChange.objects.create(user=instance, activation_date=user.active_until, group_names=user_groups_names)
 
 def analytics_child_post_save(sender, instance, signal, *args, **kwargs):
     date = instance.created_date.date()
@@ -175,6 +175,6 @@ def analytics_child_post_save(sender, instance, signal, *args, **kwargs):
     instance.save()
     post_save.connect(analytics_child_post_save, sender=sender)
 
-signals.pre_save.connect(user_pre_save, sender=MyUser)
+# signals.pre_save.connect(user_pre_save, sender=MyUser)
 signals.post_save.connect(analytics_child_post_save, sender=AnalyticsChild)
 signals.post_save.connect(user_post_save, sender=MyUser)
