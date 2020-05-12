@@ -12,7 +12,7 @@ class Command(BaseCommand):
         for user in users:
             user_groups = UserGroups.objects.filter(users=user)
             user_groups_names = ''
-            if len(user_groups_names) != 0:
+            if len(user_groups) != 0:
                 for group in user_groups:
                     user_groups_names += group.name + " \n"
                 activation = ActivationChange(user=user, activation_date=user.created, group_names=user_groups_names)
