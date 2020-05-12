@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     'psycopg2',
     'rest_framework_simplejwt',
     'corsheaders',
-    'mdeditor'
+    'mdeditor',
+    'import_export'
 ]
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=365),

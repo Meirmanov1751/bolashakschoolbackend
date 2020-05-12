@@ -23,6 +23,6 @@ class AnalyticsAdmin(admin.ModelAdmin):
 class AnalyticsCategoryAdmin(admin.ModelAdmin):
     model = AnalyticsCategory
 
-admin.site.register(AnalyticsCategory, AnalyticsCategoryAdmin)
-admin.site.register(Analytics, AnalyticsAdmin)
-admin.site.register(AnalyticsLesson)
+# admin.site.register(AnalyticsCategory, AnalyticsCategoryAdmin)
+# admin.site.register(Analytics, AnalyticsAdmin)
+# admin.site.register(AnalyticsLesson)

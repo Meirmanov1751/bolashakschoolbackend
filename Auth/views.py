@@ -51,6 +51,7 @@ class UserViewSet(CreateModelMixin, UpdateModelMixin, GenericViewSet):
     @action(detail=False, methods=["get"])
     def me(self, request, *args, **kwargs):
         user_serializer = UserReadSerializer(request.user)
+        # MyUser.objects.filter(activationchange__group_names=)
         data = user_serializer.data
         return Response(status=200, data={'user': data})
 

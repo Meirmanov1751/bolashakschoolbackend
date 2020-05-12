@@ -6,6 +6,9 @@ from django.contrib.auth.forms import ReadOnlyPasswordHashField
 from django.core.paginator import EmptyPage, InvalidPage, Paginator
 from django.urls import reverse
 from django.utils.html import format_html
+from import_export import resources, fields
+from import_export.admin import ImportExportModelAdmin, ImportExportMixin, ExportMixin
+from import_export.widgets import ForeignKeyWidget
 
 from common.paginator import TimeLimitedPaginator
 from .models import MyUser, UserGroups, Analytics, AnalyticsChild, ActivationChange
@@ -57,6 +60,7 @@ class UserChangeForm(forms.ModelForm):
         # field does not have access to the initial value
         return self.initial["password"]
 
+
 class InlineChangeList(object):
     can_show_all = True
     multi_page = True
@@ -69,6 +73,7 @@ class InlineChangeList(object):
         self.result_count = paginator.count
         self.params = dict(request.GET.items())
 
+
 class AnalyticsChildTabularAdmin(admin.TabularInline):
     model = AnalyticsChild
     readonly_fields = ('path', 'user', 'admin_link')
@@ -77,9 +82,11 @@ class AnalyticsChildTabularAdmin(admin.TabularInline):
     per_page = 10
     extra = 0
     can_delete = False
+
     def get_formset(self, request, obj=None, **kwargs):
         formset_class = super(AnalyticsChildTabularAdmin, self).get_formset(
             request, obj, **kwargs)
+
         class PaginationFormSet(formset_class):
             def __init__(self, *args, **kwargs):
                 super(PaginationFormSet, self).__init__(*args, **kwargs)
@@ -107,6 +114,7 @@ class AnalyticsChildTabularAdmin(admin.TabularInline):
 
         PaginationFormSet.per_page = self.per_page
         return PaginationFormSet
+
     def admin_link(self, instance):
         url = reverse('admin:%s_%s_change' % (instance._meta.app_label,
                                               'myuser'),
@@ -126,16 +134,35 @@ class LimitedAnalyticsChildTabularAdminLimited(admin.TabularInline):
         url += '?q=%s' % (instance.user.email)
         return format_html(u'<a href="{}">Посмотреть пользователя</a>', url)
 
+
 class UserGroupsInline(admin.TabularInline):
     model = UserGroups.users.through
+
+
 class HistoryGroupsInline(admin.TabularInline):
     model = ActivationChange
     readonly_fields = ['user', 'group_names', 'activation_date']
-class UserAdmin(BaseUserAdmin):
+
+
+class UserResource(resources.ModelResource):
+    class Meta:
+        model = MyUser
+        fields = ('email', 'first_name', 'last_name', 'active_until', 'activationchange__group_names')
+
+
+class ActivationResource(resources.ModelResource):
+    class Meta:
+        model = ActivationChange
+        fields = ('user__email', 'user__first_name', 'user__last_name', 'activation_date', 'user_groups')
+
+class ActivationAdmin(ImportExportModelAdmin):
+    resource_class = ActivationResource
+
+class UserAdmin(ExportMixin, BaseUserAdmin):
     # The forms to add and change user instances
     form = UserChangeForm
     add_form = UserCreationForm
-
+    resource_class = UserResource
     # The fields to be used in displaying the User model.
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
@@ -183,6 +210,7 @@ admin.site.register(AnalyticsChild, AnalyticsChildAdmin)
 # Now register the new UserAdmin...
 admin.site.register(MyUser, UserAdmin)
 admin.site.register(UserGroups, UserGroupsAdmin)
+admin.site.register(ActivationChange, ActivationAdmin)
 # ... and, since we're not using Django's built-in permissions,
 # unregister the Group model from admin.
 admin.site.unregister(Group)
