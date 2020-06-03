@@ -42,6 +42,7 @@ class MyUserManager(BaseUserManager):
         return user
 
 
+
 class MyUser(AbstractBaseUser):
     class ROLES:
         STUDENT = 1
@@ -69,7 +70,6 @@ class MyUser(AbstractBaseUser):
     is_verified = models.BooleanField(verbose_name='Подтверждение почты', default=False)
     verification_uuid = models.UUIDField('Unique Verification UUID', default=uuid.uuid4)
     device_id = models.CharField(max_length=300, null=True, blank=True)
-
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     active_until = models.DateField('Активен до', null=True, blank=True)
     modified = models.DateTimeField(auto_now=True, null=True, blank=True)

@@ -148,7 +148,9 @@ class UserResource(resources.ModelResource):
     class Meta:
         model = MyUser
         fields = ('email', 'first_name', 'last_name')
-
+def make_not_active(modeladmin, request, queryset):
+    queryset.update(is_active=False)
+make_not_active.short_description = "Сделать не активным"
 
 class ActivationResource(resources.ModelResource):
     class Meta:
@@ -173,7 +175,7 @@ class UserAdmin(ExportMixin, BaseUserAdmin):
         ('Personal info', {'fields': ('first_name', 'last_name', 'fathers_name', 'phone')}),
         ('Permissions', {'fields': ('is_admin', 'is_active', 'is_verified', 'active_until')}),
     )
-
+    actions = [make_not_active]
     # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
     # overrides get_fieldsets to use this attribute when creating a user.
     add_fieldsets = (
