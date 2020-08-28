@@ -4,9 +4,5 @@
 # Virtual environment
 venv
 media
-
-Requests/migrations/*
-!Requests/migrations/__init__.py
-
-Filters/migrations/*
-!Filters/migrations/__init__.py
+*/migrations/*
+!*/migrations/__init__.py
