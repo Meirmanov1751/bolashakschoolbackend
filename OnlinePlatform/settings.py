@@ -31,8 +31,9 @@ ALLOWED_HOSTS = ['*']
 
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:3000",
-    "http://178.170.221.110:8000",
-    "http://178.170.221.110",
+    "http://178.170.221.165:8000/",
+    "http://178.170.221.165:3000/",
+    "http://178.170.221.165/",
     "http://yessenov-online.kz",
     "https://yessenov-online.kz",
     "http://api.yessenov-online.kz",
