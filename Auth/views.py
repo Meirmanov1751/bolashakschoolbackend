@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth import authenticate
 from django.http import Http404
 from django.shortcuts import render, redirect
@@ -10,8 +12,13 @@ from rest_framework.mixins import CreateModelMixin, UpdateModelMixin
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .permissions import CreateAndIsAuthenticated
-from .serializers import UserReadSerializer, UserWriteSerializer, LoginSerializer, AnalyticsChildSerializer
+from .serializers import UserReadSerializer, UserWriteSerializer, LoginSerializer, GeneratePassword, \
+    TokenCheckForgetPassword, ForgotPassword
 from .models import MyUser
+from django.core.cache import cache
+from django.core.cache import cache
+
+from .tasks import send_forgot_email
 
 
 class UserViewSet(CreateModelMixin, UpdateModelMixin, GenericViewSet):
@@ -38,16 +45,6 @@ class UserViewSet(CreateModelMixin, UpdateModelMixin, GenericViewSet):
             return UserReadSerializer
         return UserWriteSerializer
 
-    @action(detail=False, methods=["post"])
-    def analytics(self, request, *args, **kwargs):
-        request_data = request.data.copy()
-        request_data['user'] = request.user.id
-        analytics_serializer = AnalyticsChildSerializer(data=request_data)
-        if analytics_serializer.is_valid(raise_exception=True):
-            analytics_serializer_create = analytics_serializer.create(analytics_serializer.validated_data)
-            analytics_serializer_create = AnalyticsChildSerializer(analytics_serializer_create)
-            return Response(status=200, data={'message': analytics_serializer_create.data})
-
     @action(detail=False, methods=["get"])
     def me(self, request, *args, **kwargs):
         user_serializer = UserReadSerializer(request.user)
@@ -70,6 +67,50 @@ class UserViewSet(CreateModelMixin, UpdateModelMixin, GenericViewSet):
         data["password"] = ""
         data["token"] = str(token.access_token)
         return Response(status=200, data={'user': data})
+
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny])
+    def generate_forgot_password(self, request, *args, **kwargs):
+        serializer = GeneratePassword(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.data['email']
+        user = MyUser.objects.filter(email__exact=email)
+        if len(user) <= 0:
+            return Response(status=404, data={'error': 'user not found'})
+        user = user.first()
+        token = uuid.uuid4()
+        print("user_forgot_token_%s" % token)
+        c = cache.set("user_forgot_token_%s" % token, str(user.id), timeout=500)
+        print(cache.get("user_forgot_token_%s" % token, None))
+        send_forgot_email(user_id=user.id, token=token)
+        return Response(status=200, data={'ok': 'ok'})
+
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny])
+    def check_forgot_password_token(self, request, *args, **kwargs):
+        serializer = TokenCheckForgetPassword(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = serializer.data['token']
+        print("user_forgot_token_%s" % token)
+        user_id = cache.get("user_forgot_token_%s" % token, None)
+        print(user_id)
+        user = MyUser.objects.filter(id=user_id)
+        if len(user) <= 0:
+            return Response(status=404, data={'error': 'user not found'})
+        return Response(status=200, data={'ok': 'ok'})
+
+    @action(detail=False, methods=["post"], permission_classes=[AllowAny])
+    def set_new_password(self, request, *args, **kwargs):
+        serializer = ForgotPassword(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = serializer.data['token']
+        password = serializer.data['password']
+        user_id = cache.get("user_forgot_token_%s" % token, None)
+        user = MyUser.objects.filter(id=user_id)
+        if len(user) <= 0:
+            return Response(status=404, data={'error': 'user not found'})
+        user = user.first()
+        user.set_password(raw_password=password)
+        user.save()
+        return Response(status=200, data={'ok': 'ok'})
 
 
 def verify(request, uuid):

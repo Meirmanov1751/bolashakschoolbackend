@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer, Serializer
-from .models import MyUser, AnalyticsChild
+from .models import MyUser
 
 
 class UserWriteSerializer(ModelSerializer):
@@ -34,10 +34,18 @@ class UserReadSerializer(ModelSerializer):
         exclude = ('password', 'is_admin', 'is_active')
 
 
-class AnalyticsChildSerializer(ModelSerializer):
-    class Meta:
-        model = AnalyticsChild
-        fields = '__all__'
+class GeneratePassword(Serializer):
+    email = serializers.EmailField()
+
+
+class TokenCheckForgetPassword(Serializer):
+    token = serializers.UUIDField()
+
+
+class ForgotPassword(Serializer):
+    token = serializers.UUIDField()
+    password = serializers.CharField()
+
 
 class LoginSerializer(Serializer):
     username = serializers.CharField()

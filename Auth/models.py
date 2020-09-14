@@ -42,7 +42,6 @@ class MyUserManager(BaseUserManager):
         return user
 
 
-
 class MyUser(AbstractBaseUser):
     class ROLES:
         STUDENT = 1
@@ -52,7 +51,19 @@ class MyUser(AbstractBaseUser):
         ROLE_CHOICES = (
             (STUDENT, 'Студент'),
             (TEACHER, 'Учитель'),
+            (TEACHER, 'Родитель'),
             (ADMIN, 'Админ'),
+        )
+
+    class LANGUAGES:
+        KAZ = 1
+        RUS = 2
+        ENG = 3
+
+        ROLE_CHOICES = (
+            (KAZ, 'Казахский'),
+            (RUS, 'Русский'),
+            (ENG, 'Английский'),
         )
 
     email = models.EmailField(
@@ -60,16 +71,17 @@ class MyUser(AbstractBaseUser):
         max_length=255,
         unique=True,
     )
-    first_name = models.CharField(max_length=100, null=True, blank=True, verbose_name='Имя')
-    last_name = models.CharField(max_length=100, null=True, blank=True, verbose_name='Фамилия')
-    fathers_name = models.CharField(max_length=100, null=True, blank=True, verbose_name='Отчество')
+    parent_full_name = models.CharField(max_length=100, null=True, blank=True, verbose_name='Имя Родителей')
+    grade = models.IntegerField(verbose_name='Имя', default=6)
+    full_name = models.CharField(max_length=100, null=True, blank=True, verbose_name='Имя')
     phone = models.CharField(max_length=20, verbose_name='Номер телефона', null=True, blank=True)
+    city = models.CharField(max_length=100, null=True, blank=True)
     type = models.PositiveSmallIntegerField(choices=ROLES.ROLE_CHOICES, default=ROLES.STUDENT, verbose_name='Тип')
+    language = models.PositiveSmallIntegerField(choices=LANGUAGES.ROLE_CHOICES, default=LANGUAGES.RUS, verbose_name='Язык')
     is_active = models.BooleanField(default=True, verbose_name='Активный')
     is_admin = models.BooleanField(default=False, verbose_name='Админ')
     is_verified = models.BooleanField(verbose_name='Подтверждение почты', default=False)
     verification_uuid = models.UUIDField('Unique Verification UUID', default=uuid.uuid4)
-    device_id = models.CharField(max_length=300, null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     active_until = models.DateField('Активен до', null=True, blank=True)
     modified = models.DateTimeField(auto_now=True, null=True, blank=True)
@@ -87,7 +99,7 @@ class MyUser(AbstractBaseUser):
         verbose_name_plural = 'Пользователи'
 
     def __str__(self):
-        return "%s %s %s" % (self.email, self.first_name, self.last_name)
+        return "%s %s " % (self.email, self.full_name)
 
     def has_perm(self, perm, obj=None):
         "Does the user have a specific permission?"
@@ -106,54 +118,12 @@ class MyUser(AbstractBaseUser):
         return self.is_admin
 
 
-class ActivationChange(models.Model):
-    user = models.ForeignKey('Auth.MyUser', on_delete=models.CASCADE)
-    activation_date = models.DateField('Дата активации')
-    group_names = models.TextField()
-
-
-class UserGroups(models.Model):
-    name = models.CharField('Имя группы', max_length=300)
-    users = models.ManyToManyField('Auth.MyUser', verbose_name="Добавить пользователя", blank=True)
-    sub_category = models.ManyToManyField('Lesson.SubCategory', verbose_name='Доступ к разделам', blank=True)
-
-    class Meta:
-        verbose_name = 'Группа'
-        verbose_name_plural = 'Группы'
-
-    def __str__(self):
-        return self.name
-
-
-class Analytics(models.Model):
-    created_date = models.DateField(auto_now_add=True, blank=True, null=True, verbose_name='дата создания')
-
-    class Meta:
-        verbose_name = 'Аналитика'
-        verbose_name_plural = 'Аналитика'
-
-    def __str__(self):
-        return str(self.created_date)
-
-
-class AnalyticsChild(models.Model):
-    analytics = models.ForeignKey('Auth.Analytics', on_delete=models.CASCADE, null=True, blank=True)
-    created_date = models.DateTimeField(auto_now_add=True, blank=True, null=True, verbose_name='дата создания')
-    user = models.ForeignKey('Auth.MyUser', verbose_name="Пользователь", on_delete=models.CASCADE, blank=True)
-    path = models.URLField(verbose_name='Посещенная страница')
-
-    class Meta:
-        verbose_name = 'Детальная аналитика'
-        verbose_name_plural = 'Детальная аналитика'
-
-    def __str__(self):
-        return "%s %s" % (self.created_date, self.user.email)
-
-
 def user_post_save(sender, instance, signal, *args, **kwargs):
     if not instance.is_verified:
         # Send verification email
         send_verification_email.delay(instance.pk)
+
+
 # def user_pre_save(sender, instance, *args, **kwargs):
 #     user = MyUser.objects.get(pk=instance.id)
 #     if user.active_until != instance.active_until:
@@ -163,18 +133,7 @@ def user_post_save(sender, instance, signal, *args, **kwargs):
 #             user_groups_names += group.name + " \n"
 #         ActivationChange.objects.create(user=instance, activation_date=user.active_until, group_names=user_groups_names)
 
-def analytics_child_post_save(sender, instance, signal, *args, **kwargs):
-    date = instance.created_date.date()
-    analytics = Analytics.objects.filter(created_date=date)
-    post_save.disconnect(analytics_child_post_save, sender=sender)
-    if len(analytics) == 0:
-        analytics = Analytics.objects.create()
-    else:
-        analytics = analytics[0]
-    instance.analytics = analytics
-    instance.save()
-    post_save.connect(analytics_child_post_save, sender=sender)
 
 # signals.pre_save.connect(user_pre_save, sender=MyUser)
-signals.post_save.connect(analytics_child_post_save, sender=AnalyticsChild)
+# signals.post_save.connect(analytics_child_post_save, sender=AnalyticsChild)
 signals.post_save.connect(user_post_save, sender=MyUser)

@@ -20,15 +20,20 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from Auth.urls import router as auth_router
+from Course.urls import router as course_router
+from Test.urls import router as test_router
 from Auth.views import verify
-from Lesson.urls import router as lesson_router
+from Book.urls import router as book_router
 router = DefaultRouter()
 router.registry.extend(auth_router.registry)
-router.registry.extend(lesson_router.registry)
+router.registry.extend(course_router.registry)
+router.registry.extend(test_router.registry)
+router.registry.extend(book_router.registry)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
     url(r'^verify/(?P<uuid>[a-z0-9\-]+)/', verify, name='verify'),
     url(r'mdeditor/', include('mdeditor.urls'))
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)\
+              + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
