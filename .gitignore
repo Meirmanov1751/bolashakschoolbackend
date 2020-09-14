@@ -6,3 +6,6 @@ venv
 media
 */migrations/*
 !*/migrations/__init__.py
+celerybeat-schedule
+celerybeat.pid
+*.sqlite3
