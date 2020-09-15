@@ -52,8 +52,9 @@ class CoursePriceViewSet(ReadOnlyModelViewSet):
                 return Response({'id': module_user.id})
         return Response({'asd': 'asd'})
 
-    @action(methods=['post'], detail=False)
+    @action(methods=['post'], detail=False, permission_classes[AllowAny])
     def verify(self, request, *args, **kwargs):
+        print(request.data)
         data = request.data
         if 'module' in data:
             module_id = data['module']
