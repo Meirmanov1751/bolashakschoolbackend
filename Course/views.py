@@ -1,15 +1,8 @@
-from django.contrib.auth import authenticate
-from django.http import Http404
-from django.shortcuts import render, redirect
-from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
-from rest_framework.mixins import CreateModelMixin, UpdateModelMixin
-from rest_framework_simplejwt.tokens import RefreshToken
 
-from Auth.models import MyUser
 from .permissions import HasLessonAccess
 from .serializers import CourseSerializer, CategoryDetailedSerializer, ModuleDetailedSerializer, \
     LessonDetailedSerializer, LessonUserHistorySerializer, CoursePriceSerializer
@@ -52,7 +45,7 @@ class CoursePriceViewSet(ReadOnlyModelViewSet):
                 return Response({'id': module_user.id})
         return Response({'asd': 'asd'})
 
-    @action(methods=['post'], detail=False, permission_classes[AllowAny])
+    @action(methods=['post'], detail=False, permission_classes=[AllowAny])
     def verify(self, request, *args, **kwargs):
         print(request.data)
         data = request.data

@@ -47,7 +47,7 @@ class TestCategoryPriceViewSet(ReadOnlyModelViewSet):
                 return Response({'id': test_user.id})
         return Response({'asd': 'asd'})
 
-    @action(methods=['post'], detail=False, permission_classes[AllowAny])
+    @action(methods=['post'], detail=False, permission_classes=[AllowAny])
     def verify(self, request, *args, **kwargs):
         data = request.data
         if 'test_group' in data:
