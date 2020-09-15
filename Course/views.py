@@ -47,10 +47,10 @@ class CoursePriceViewSet(ReadOnlyModelViewSet):
 
     @action(methods=['post'], detail=False, permission_classes=[AllowAny])
     def verify(self, request, *args, **kwargs):
-        print(request.data)
+
         data = request.data
-        if 'module' in data:
-            module_id = data['module']
+        if 'pg_order_id' in data:
+            module_id = data['pg_order_id']
             module = ModuleUser.objects.filter(id=module_id)
             if module.exists():
                 module = module.first()

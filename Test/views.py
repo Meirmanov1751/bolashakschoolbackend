@@ -50,12 +50,12 @@ class TestCategoryPriceViewSet(ReadOnlyModelViewSet):
     @action(methods=['post'], detail=False, permission_classes=[AllowAny])
     def verify(self, request, *args, **kwargs):
         data = request.data
-        if 'test_group' in data:
-            test_group_id = data['test_group']
+        if 'pg_order_id' in data:
+            test_group_id = data['pg_order_id']
             test_group = TestGroupUser.objects.filter(id=test_group_id)
             if test_group.exists():
                 test_group = test_group.first()
                 test_group.verified = True
                 test_group.save()
-                return Response({'ok': 'ok'})
+                return Response({'ok': test_group.id})
         return Response({'asd': 'asd'})
