@@ -49,6 +49,7 @@ class CoursePriceViewSet(ReadOnlyModelViewSet):
     def verify(self, request, *args, **kwargs):
 
         data = request.data
+        print(data)
         if 'pg_order_id' in data:
             module_id = data['pg_order_id']
             module = ModuleUser.objects.filter(id=module_id)
