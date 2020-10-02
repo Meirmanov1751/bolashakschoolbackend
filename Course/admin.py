@@ -7,19 +7,24 @@ from modeltranslation.admin import TranslationAdmin, TranslationStackedInline, T
 
 
 # Register your models here.
-class LessonTasksTabularAdmin(TranslationTabularInline):
+class LessonTasksTabularAdmin(TranslationStackedInline):
     model = LessonTasks
-    fields = ['name', 'change_link']
-    readonly_fields = ['name', 'change_link']
-    # classes = ['collapse']
-    show_change_link = True
-    def change_link(self, obj):
-        return mark_safe('<a href="%s" class="button">Изменить</a>' % \
-                         reverse('admin:Course_lessontasks_change',
-                                 args=(obj.id,)))
+    class Media:
+        js = (
+            'modeltranslation/js/force_jquery.js',
+            'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.24/jquery-ui.min.js',
+            'modeltranslation/js/tabbed_translation_fields.js',
+        )
+        css = {
+            'screen': ('modeltranslation/css/tabbed_translation_fields.css',),
+        }
+
+
 @admin.register(LessonTasks)
 class LessonTaskAdmin(admin.ModelAdmin):
     pass
+
+
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display = ['name']
@@ -36,6 +41,17 @@ class CategoryAdmin(admin.ModelAdmin):
 class LessonAdmin(TranslationAdmin):
     inlines = [LessonTasksTabularAdmin]
     autocomplete_fields = ['category']
+    list_display = ['name', 'category']
+    search_fields = ['name', 'category__name']
+    class Media:
+        js = (
+            'modeltranslation/js/force_jquery.js',
+            'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.24/jquery-ui.min.js',
+            'modeltranslation/js/tabbed_translation_fields.js',
+        )
+        css = {
+            'screen': ('modeltranslation/css/tabbed_translation_fields.css',),
+        }
 
 
 @admin.register(Module)
