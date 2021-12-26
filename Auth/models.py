@@ -77,7 +77,8 @@ class MyUser(AbstractBaseUser):
     phone = models.CharField(max_length=20, verbose_name='Номер телефона', null=True, blank=True)
     city = models.CharField(max_length=100, null=True, blank=True)
     type = models.PositiveSmallIntegerField(choices=ROLES.ROLE_CHOICES, default=ROLES.STUDENT, verbose_name='Тип')
-    language = models.PositiveSmallIntegerField(choices=LANGUAGES.ROLE_CHOICES, default=LANGUAGES.RUS, verbose_name='Язык')
+    language = models.PositiveSmallIntegerField(choices=LANGUAGES.ROLE_CHOICES, default=LANGUAGES.RUS,
+                                                verbose_name='Язык')
     is_active = models.BooleanField(default=True, verbose_name='Активный')
     is_admin = models.BooleanField(default=False, verbose_name='Админ')
     is_verified = models.BooleanField(verbose_name='Подтверждение почты', default=False)
@@ -86,6 +87,10 @@ class MyUser(AbstractBaseUser):
     active_until = models.DateField('Активен до', null=True, blank=True)
     modified = models.DateTimeField(auto_now=True, null=True, blank=True)
 
+    # баланс который может быть потрачен
+    current_balance = models.FloatField(default=0)
+    # баланс который будет храниться всегда, нужен для лидерборда
+    full_balance = models.FloatField(default=0)
     objects = MyUserManager()
 
     USERNAME_FIELD = 'email'
@@ -110,6 +115,15 @@ class MyUser(AbstractBaseUser):
         "Does the user have permissions to view the app `app_label`?"
         # Simplest possible answer: Yes, always
         return True
+
+    def add_balance(self, balance):
+        self.current_balance += balance
+        self.full_balance += balance
+        self.save()
+
+    def minus_balance(self, balance):
+        self.current_balance -= balance
+        self.save()
 
     @property
     def is_staff(self):
