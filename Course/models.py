@@ -51,9 +51,12 @@ class Lesson(models.Model):
     name = models.CharField('Имя', max_length=300)
     description = models.TextField('Описание', blank=True, null=True)
     vimeo = models.TextField(null=True, blank=True)
+    video = models.FileField(null=True)
     task_min = models.IntegerField('Минимум для прохода', null=True)
     free = models.BooleanField('Бесплатно', default=False)
     lesson_order = models.IntegerField('Позиция урока', default=0)
+
+    lesson_balance_reward = models.FloatField(default=10)
 
     def __str__(self):
         return "%s" % (self.name)
@@ -96,7 +99,7 @@ class LessonUserHistory(models.Model):
     mark = models.IntegerField(default=0)
     last_visited = models.DateTimeField(auto_now=True, null=True, blank=True)
     visited_count = models.IntegerField(default=0)
-
+    is_rewarded = models.BooleanField(default=False)
 
 class ModuleUser(models.Model):
     module = models.ForeignKey('Course.Module', on_delete=models.CASCADE)

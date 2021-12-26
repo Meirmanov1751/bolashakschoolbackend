@@ -81,6 +81,9 @@ class LessonViewSet(ReadOnlyModelViewSet):
                 history = history.first()
             if 'mark' in request.data:
                 history.mark = request.data.get("mark", 0)
+            if lesson.task_min >= history.mark and not history.is_rewarded:
+                history.user.add_balance(lesson.lesson_balance_reward)
+                history.is_rewarded = True
             history.visited_count += 1
             history.save()
             print('view history', history.user)
