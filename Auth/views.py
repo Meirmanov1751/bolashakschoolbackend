@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, AllowAny
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.viewsets import GenericViewSet, ReadOnlyModelViewSet
 from rest_framework.mixins import CreateModelMixin, UpdateModelMixin
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -111,6 +111,11 @@ class UserViewSet(CreateModelMixin, UpdateModelMixin, GenericViewSet):
         user.set_password(raw_password=password)
         user.save()
         return Response(status=200, data={'ok': 'ok'})
+
+
+class LeaderBoard(ReadOnlyModelViewSet):
+    queryset = MyUser.objects.order_by('full_balance').filter(type=MyUser.ROLES.STUDENT)
+    serializer_class = UserReadSerializer
 
 
 def verify(request, uuid):
